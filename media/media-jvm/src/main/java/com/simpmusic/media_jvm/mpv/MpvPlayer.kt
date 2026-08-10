@@ -341,6 +341,11 @@ class MpvPlayer private constructor(
     @Volatile
     private var lastEmittedPlaying: Boolean? = null
 
+    // ---- volume bug fix: track if AUDIO_RECONFIG has been applied for this track ----
+
+    @Volatile
+    private var audioConfigApplied = false
+
     // ================= setup =================
 
     private fun start() {
@@ -424,6 +429,7 @@ class MpvPlayer private constructor(
             MpvEventId.START_FILE -> {
                 playbackRestarted = false
                 lastEmittedPlaying = null
+                audioConfigApplied = false
                 listener?.opening(this)
             }
 
@@ -451,7 +457,15 @@ class MpvPlayer private constructor(
                 // it exists. An earlier setMasterVolume/setFadeVolume therefore may have fallen back
                 // to the software volume — which would then multiply against the mixer level the
                 // previous track left behind. Re-apply now that the real target is reachable.
-                applyVolume()
+                //
+                // FIX for v1.7.0 volume bug: Only apply volume on the FIRST AUDIO_RECONFIG per track.
+                // Multiple AUDIO_RECONFIG events can fire during playback (e.g. after seeks or format
+                // changes), and re-applying the volume each time was resetting the user's manual
+                // adjustments back to masterPercent/fadePercent ~3 seconds into playback.
+                if (!audioConfigApplied) {
+                    applyVolume()
+                    audioConfigApplied = true
+                }
             }
 
             MpvEventId.PLAYBACK_RESTART -> {
@@ -751,8 +765,6 @@ class MpvPlayer private constructor(
     }
 
     /**
-     * Repeat the current file indefinitely.
-     *
      * mpv's `loop-file` property (v0.37.0 options.rst: `--loop-file=<N|inf|no>`, *"inf means
      * forever"*). Preferred over re-issuing `loadfile` when end-of-file arrives — the VLC-era
      * approach — because looping natively replays from the demuxer cache instead of refetching
