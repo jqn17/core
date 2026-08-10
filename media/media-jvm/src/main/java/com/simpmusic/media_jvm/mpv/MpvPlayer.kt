@@ -424,6 +424,7 @@ class MpvPlayer private constructor(
             MpvEventId.START_FILE -> {
                 playbackRestarted = false
                 lastEmittedPlaying = null
+                audioConfigApplied = false
                 listener?.opening(this)
             }
 
@@ -445,6 +446,50 @@ class MpvPlayer private constructor(
                     else -> Unit
                 }
             }
+
+            MpvEventId.AUDIO_RECONFIG -> {
+                if (!audioConfigApplied) {
+                    applyVolume()
+                    audioConfigApplied = true
+                }
+            }
+
+            MpvEventId.PLAYBACK_RESTART -> {
+                playbackRestarted = true
+                maybeEmitPlayState()
+            }
+
+            MpvEventId.PROPERTY_CHANGE -> {
+                val dataPtr = event.data ?: return
+                val prop = MpvEventProperty(dataPtr).apply { read() }
+                val name = prop.name?.getString(0) ?: return
+                val valuePtr = prop.data ?: return
+
+                when (name) {
+                    "time-pos" ->
+                        if (prop.format == MpvFormat.DOUBLE) {
+                            listener?.timeChanged(this, secondsToMs(valuePtr.getDouble(0)))
+                        }
+
+                    "duration" ->
+                        if (prop.format == MpvFormat.DOUBLE) {
+                            listener?.lengthChanged(this, secondsToMs(valuePtr.getDouble(0)))
+                        }
+
+                    "pause" ->
+                        if (prop.format == MpvFormat.FLAG) {
+                            pausedFlag = valuePtr.getInt(0) != 0
+                            maybeEmitPlayState()
+                        }
+
+                    "cache-buffering-state" ->
+                        if (prop.format == MpvFormat.INT64) {
+                            listener?.buffering(this, valuePtr.getLong(0).toFloat())
+                        }
+                }
+            }
+        }
+    }
 
             MpvEventId.AUDIO_RECONFIG -> {
                 // The audio output was just (re)created, and `ao-volume` only becomes settable once
