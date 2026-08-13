@@ -2028,7 +2028,7 @@ class MpvPlayerAdapter(
         private const val UNKNOWN_GAP_DEFAULT_FACTOR = 1.25
 
         // DJ crossfade sigmoid steepness (higher = sharper S-curve transition)
-        private const val DJ_FILTER_SIGMOID_K = 6f
+        private const val DJ_FILTER_SIGMOID_K = 2f
 
         // DJ crossfade filter frequency bounds
         private const val LPF_START_HZ = 20000f // Low-pass starts wide open
