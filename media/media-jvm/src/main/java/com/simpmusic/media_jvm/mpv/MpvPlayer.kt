@@ -281,6 +281,8 @@ class MpvPlayer private constructor(
                 return null
             }
 
+            option("volume-gain", "-8.0")
+
             val rc = lib.mpv_initialize(ctx)
             if (rc < 0) {
                 Logger.e(TAG, "mpv_initialize failed: ${lib.mpv_error_string(rc)}")
