@@ -319,6 +319,9 @@ class MpvPlayer private constructor(
             }
         }
     }
+    
+    @Volatile
+    private  var audioConfigApplied = false
 
     @Volatile
     var isReleased = false
