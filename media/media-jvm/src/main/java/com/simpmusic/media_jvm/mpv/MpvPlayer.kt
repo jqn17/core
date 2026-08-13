@@ -636,12 +636,15 @@ class MpvPlayer private constructor(
      * still honoured.
      */
     private fun applyVolume() {
-        if (setPropertyDouble("ao-volume", masterPercent.toDouble(), logFailure = false) >= 0) {
-            setPropertyDouble("volume", fadePercent.toDouble())
-        } else {
-            setPropertyDouble("volume", masterPercent * fadePercent / 100.0)
-        }
+    // Obniżamy głośność o 40% (mnożnik 0.6f odpowiada tłumieniu ~-8 dB)
+    val attenuatedMaster = (masterPercent * 0.6f).toDouble()
+
+    if (setPropertyDouble("ao-volume", attenuatedMaster, logFailure = false) >= 0) {
+        setPropertyDouble("volume", fadePercent.toDouble())
+    } else {
+        setPropertyDouble("volume", attenuatedMaster * fadePercent / 100.0)
     }
+}
 
     fun setMute(mute: Boolean) {
         if (isReleased) return
