@@ -282,6 +282,7 @@ class MpvPlayer private constructor(
             }
 
             option("volume-gain", "-8.0") // Odbiera 8 decybeli z wyjścia
+            
             val rc = lib.mpv_initialize(ctx)
             if (rc < 0) {
                 Logger.e(TAG, "mpv_initialize failed: ${lib.mpv_error_string(rc)}")
