@@ -2612,11 +2612,14 @@ class MpvPlayerAdapter(
     }
     private fun scaleVolume(input: Float): Int {
     val clamped = input.coerceIn(0f, 1f)
-    // Przeliczenie (np. x^3)
-    val scaled = (clamped * clamped * clamped * 100f).toInt()
     
-    // Logujemy w konsoli: suwak -> wynik w mpv (0-100)
-    Logger.d(TAG, "Volume slider: $clamped -> mpv scaled volume: $scaled")
+    // Ustawiamy maksymalny sufit głośności na wyjściu (np. 30% mocy mpv)
+    // Dzięki temu suwak ustawiony na 100% da w rzeczywistości max 30% głośności,
+    // a dół nadal pozostanie bardzo łagodny i cichy.
+    val maxVolume = 30f 
+    
+    // Krzywa kwadratowa przeliczona do nowego limitu
+    val scaled = (clamped * clamped * maxVolume).toInt()
     
     return scaled
 }
