@@ -493,52 +493,7 @@ class MpvPlayer private constructor(
         }
     }
 
-            MpvEventId.AUDIO_RECONFIG -> {
-                // The audio output was just (re)created, and `ao-volume` only becomes settable once
-                // it exists. An earlier setMasterVolume/setFadeVolume therefore may have fallen back
-                // to the software volume — which would then multiply against the mixer level the
-                // previous track left behind. Re-apply now that the real target is reachable.
-                applyVolume()
-            }
 
-            MpvEventId.PLAYBACK_RESTART -> {
-                // Also fires after every seek, so it can't stand in for vlcj's playing() on its
-                // own — it only marks "output has (re)started"; the pause flag decides the rest.
-                playbackRestarted = true
-                maybeEmitPlayState()
-            }
-
-            MpvEventId.PROPERTY_CHANGE -> {
-                val dataPtr = event.data ?: return
-                val prop = MpvEventProperty(dataPtr).apply { read() }
-                val name = prop.name?.getString(0) ?: return
-                // format == MPV_FORMAT_NONE (and data == null) means the value was unavailable.
-                val valuePtr = prop.data ?: return
-                when (name) {
-                    "time-pos" ->
-                        if (prop.format == MpvFormat.DOUBLE) {
-                            listener?.timeChanged(this, secondsToMs(valuePtr.getDouble(0)))
-                        }
-
-                    "duration" ->
-                        if (prop.format == MpvFormat.DOUBLE) {
-                            listener?.lengthChanged(this, secondsToMs(valuePtr.getDouble(0)))
-                        }
-
-                    "pause" ->
-                        if (prop.format == MpvFormat.FLAG) {
-                            pausedFlag = valuePtr.getInt(0) != 0
-                            maybeEmitPlayState()
-                        }
-
-                    "cache-buffering-state" ->
-                        if (prop.format == MpvFormat.INT64) {
-                            listener?.buffering(this, valuePtr.getLong(0).toFloat())
-                        }
-                }
-            }
-        }
-    }
 
     /**
      * Emit vlcj-equivalent `playing()` / `paused()` edges.
