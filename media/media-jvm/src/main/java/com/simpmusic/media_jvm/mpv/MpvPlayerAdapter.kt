@@ -2616,7 +2616,7 @@ class MpvPlayerAdapter(
     // Ustawiamy maksymalny sufit głośności na wyjściu (np. 30% mocy mpv)
     // Dzięki temu suwak ustawiony na 100% da w rzeczywistości max 30% głośności,
     // a dół nadal pozostanie bardzo łagodny i cichy.
-    val maxVolume = 30f 
+    val maxVolume = 1f 
     
     // Krzywa kwadratowa przeliczona do nowego limitu
     val scaled = (clamped * clamped * maxVolume).toInt()
