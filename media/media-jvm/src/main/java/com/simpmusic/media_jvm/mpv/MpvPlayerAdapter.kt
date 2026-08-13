@@ -2611,7 +2611,13 @@ class MpvPlayerAdapter(
         return null
     }
     private fun scaleVolume(input: Float): Int {
-        val clamped = input.coerceIn(0f, 1f)
-        return (clamped * clamped * 100f).toInt()
-    }
+    val clamped = input.coerceIn(0f, 1f)
+    // Przeliczenie (np. x^3)
+    val scaled = (clamped * clamped * clamped * 100f).toInt()
+    
+    // Logujemy w konsoli: suwak -> wynik w mpv (0-100)
+    Logger.d(TAG, "Volume slider: $clamped -> mpv scaled volume: $scaled")
+    
+    return scaled
+}
 }
