@@ -2610,4 +2610,8 @@ class MpvPlayerAdapter(
 
         return null
     }
+    private fun scaleVolume(input: Float): Int {
+        val clamped = input.coerceIn(0f, 1f)
+        return (clamped * clamped * 100f).toInt()
+    }
 }
