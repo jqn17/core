@@ -4,6 +4,7 @@ import com.maxrave.logger.Logger
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
 import java.util.Locale
+import kotlin.math.roundToInt
 
 private const val TAG = "MpvPlayer"
 
@@ -580,8 +581,20 @@ class MpvPlayer private constructor(
      */
     fun setMasterVolume(volume: Int) {
         if (isReleased) return
-        masterPercent = volume.coerceIn(0, 100)
+        // Przeliczamy wejściowe 0..100 na naszą skasowaną krzywą z limitem 30%
+        masterPercent = scaleVolume(volume)
         applyVolume()
+    }
+
+    private fun scaleVolume(input: Int): Int {
+        // Normalizujemy wejście do zakresu 0.0 - 1.0
+        val clamped = input.coerceIn(0, 100) / 100f
+        
+        // Ustawiamy maksymalny sufit głośności na 30% mocy
+        val maxVolume = 0.3f 
+        
+        // Wzór kwadratowy ze skalowaniem do zakresu mpv (0..100)
+        return (clamped * clamped * maxVolume * 100f).roundToInt()
     }
 
     /**
