@@ -618,11 +618,11 @@ class MpvPlayer private constructor(
      * still honoured.
      */
     private fun applyVolume() {
-        if (setPropertyDouble("ao-volume", masterPercent.toDouble(), logFailure = false) >= 0) {
-            setPropertyDouble("volume", fadePercent.toDouble())
-        } else {
-            setPropertyDouble("volume", masterPercent * fadePercent / 100.0)
-        }
+        // Obliczamy łączną głośność programową (uwzględniając masterPercent oraz ewentualny fade)
+        val combinedVolume = masterPercent * (fadePercent / 100.0)
+        
+        // Ustawiamy TYLKO wewnętrzny volume MPV — mikser Windowsa pozostanie nietknięty
+        setPropertyDouble("volume", combinedVolume)
     }
 
     fun setMute(mute: Boolean) {
